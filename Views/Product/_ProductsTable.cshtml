@@ -1,0 +1,59 @@
+﻿@model List<Product>
+@{
+}
+
+<table class="table table-bordered">
+	<thead>
+		<tr>
+			<th>#</th>
+			<th>Name</th>
+			<th>Price</th>
+		</tr>
+		 
+	</thead>
+	<tbody>
+		@foreach(var p in Model)
+		{
+			<tr>
+				<td>@p.Id</td>
+				<td>@p.Name</td>
+				<td>@p.Price</td>
+			</tr>
+		}
+	</tbody>
+</table>
+
+<nav>
+    <ul class="pagination">
+        @if (ViewBag.CurrentPage > 1)
+        {
+            <li class="page-item">
+                <a href="#" class="page-link" data-page="@(ViewBag.CurrentPage - 1)">Previous</a>
+            </li>
+        }
+
+        @for (int i = 1; i <= ViewBag.TotalPages; i++)
+        {
+            if (i == ViewBag.CurrentPage)
+            {
+                <li class="page-item active">
+                    <span class="page-link">@i</span>
+                </li>
+            }
+            else
+            {
+                <li class="page-item">
+                    <a href="#" class="page-link" data-page="@i">@i</a>
+                </li>
+            }
+        }
+
+        @if (ViewBag.CurrentPage < ViewBag.TotalPages)
+        {
+            <li class="page-item">
+                <a href="#" class="page-link" data-page="@(ViewBag.CurrentPage + 1)">Next</a>
+            </li>
+        }
+    </ul>
+</nav>
+
