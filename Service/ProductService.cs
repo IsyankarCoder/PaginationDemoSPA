@@ -25,18 +25,35 @@ namespace PaginationDemoSPA.Service
         /// <param name="pageSize"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public async Task<Result<(List<Product> Products, int TotalPages)>> GetPagedProductsAsync(int page, int pageSize, CancellationToken cancellationToken)
+        public async Task<Result<(List<Product> Products, int TotalPages)>> GetPagedProductsAsync(int page,
+                                                                                                  int pageSize,
+                                                                                                  CancellationToken cancellationToken = default,
+                                                                                                  string search="",
+                                                                                                  decimal? minPrice=null,
+                                                                                                  decimal? maxPrice=null
+                                                                                                  )
         {
             try
             {
-                throw new Exception("Custom hata oldu");
-                var totalProducts = await _context.Products.CountAsync(cancellationToken);
+                var query = _context.Products.AsQueryable();
+
+                if (!string.IsNullOrEmpty(search))
+                    query = query.Where(x => x.Name.Contains(search));
+
+                if (minPrice.HasValue)
+                    query = query.Where(x => x.Price >= minPrice);
+
+                if (maxPrice.HasValue)
+                    query = query.Where(x => x.Price <= maxPrice);
+
+
+                var totalProducts = await query.CountAsync(cancellationToken);
                 if (totalProducts == 0)
                     return Result<(List<Product>, int)>.Fail("Hiç ürün buluanamadı");
 
-                var products = await _context.Products
+                var products = await  query
                                              .OrderBy(d => d.Id)
-                                             .Skip(pageSize)
+                                             .Skip((page - 1) * pageSize)
                                              .Take(pageSize)
                                              .ToListAsync();
 

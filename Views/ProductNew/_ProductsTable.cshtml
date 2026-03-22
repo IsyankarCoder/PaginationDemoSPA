@@ -1,59 +1,82 @@
 ﻿@model List<Product>
-@{
-}
 
-<table class="table table-bordered">
-	<thead>
-		<tr>
-			<th>#</th>
-			<th>Name</th>
-			<th>Price</th>
-		</tr>
-		 
-	</thead>
-	<tbody>
-		@foreach(var p in Model)
-		{
-			<tr>
-				<td>@p.Id</td>
-				<td>@p.Name</td>
-				<td>@p.Price</td>
-			</tr>
-		}
-	</tbody>
-</table>
+<div id="table-wrapper" style="position:relative;">
 
-<nav>
-    <ul class="pagination">
-        @if (ViewBag.CurrentPage > 1)
-        {
-            <li class="page-item">
-                <a href="#" class="page-link" data-page="@(ViewBag.CurrentPage - 1)">Previous</a>
-            </li>
-        }
+	<!-- LOADING OVERLAY (HER ZAMAN DOM da olmalı) -->
 
-        @for (int i = 1; i <= ViewBag.TotalPages; i++)
-        {
-            if (i == ViewBag.CurrentPage)
-            {
-                <li class="page-item active">
-                    <span class="page-link">@i</span>
-                </li>
-            }
-            else
-            {
-                <li class="page-item">
-                    <a href="#" class="page-link" data-page="@i">@i</a>
-                </li>
-            }
-        }
+	<div id="loading-overlay" style="
+		display:none;
+		position:absolute;
+		top:0; left:0;
+		width:100%; height:100%;
+		background:rgba(255,255,255,0.6);
+		z-index:10;
+		justify-content:center;
+		align-items:center;
+		">
+		<div class="spinner-border text-primary"></div>
+	</div>
 
-        @if (ViewBag.CurrentPage < ViewBag.TotalPages)
-        {
-            <li class="page-item">
-                <a href="#" class="page-link" data-page="@(ViewBag.CurrentPage + 1)">Next</a>
-            </li>
-        }
-    </ul>
-</nav>
+	@if (Model == null || !Model.Any())
+	{
+		<div class="alert alert-warning text-center mt-3">
+			Ürün bulunmadı
+		</div>
+	}
+	else
+	{
+		<table class="table table-bordered">
+			<thead>
+				<tr>
+					<th>#</th>
+					<th>Name</th>
+					<th>Price</th>
+				</tr>
+			</thead>
+			<tbody>
+				@foreach (var p in Model)
+				{
+					<tr>
+						<td>@p.Id</td>
+						<td>@p.Name</td>
+						<td>@p.Price</td>
+					</tr>
+				}
+			</tbody>
+		</table>
+		<nav>
+			<ul class="pagination">
+				@if (ViewBag.CurrentPage > 1)
+				{
+					<li class="page-item">
+						<a href="#" class="page-link" data-page="@(ViewBag.CurrentPage - 1)">Previous</a>
+					</li>
+				}
+				@for (int i = 1; i <= ViewBag.TotalPages; i++)
+				{
+					if (i == ViewBag.CurrentPage)
+					{
+						<li class="page-item active">
+							<span class="page-link">@i</span>
+						</li>
+					}
+					else
+					{
+						<li class="page-item">
+							<a href="#" class="page-link" data-page="@i">@i</a>
+						</li>
+					
+					}
+				}
+				@if (ViewBag.CurrentPage < ViewBag.TotalPages)
+				{
+					<li class="page-item">
+						<a href="#" class="page-link" data-page="@(ViewBag.CurrentPage + 1)">Next</a>
+					</li>
+				}
 
+			</ul>
+		</nav>
+
+	}
+</div>

@@ -25,10 +25,12 @@ namespace PaginationDemoSPA.Controllers
             var result = await _productService.GetPagedProductsAsync(page, pageSize, cancellationToken);
             if (!result.Success)
             {
-                return View("Error", new ErrorViewModel()
+                ViewBag.ErrorMessage = result.Error; // Hata mesajını ViewBag ile ana sayfada göster
+                return View(new List<Product>());   // Boş liste gönder
+                /*return View("Error", new ErrorViewModel()
                 {
                     RequestId = Guid.NewGuid().ToString(),
-                });
+                });*/
             }
 
             var (products, totalpages) = result.Data;
@@ -42,17 +44,19 @@ namespace PaginationDemoSPA.Controllers
 
 
         //Partialview for Ajax
-        public async Task<IActionResult> GetProductsPartial(int page = 1, CancellationToken cancellationToken = default)
+        public async Task<IActionResult> GetProductsPartial(int page = 1, 
+                                                            string search = "",
+                                                            decimal? minPrice = null,
+                                                            decimal? maxPrice = null,
+                                                            CancellationToken cancellationToken = default)
         {
             int pageSize = 10;
 
-            var result = await _productService.GetPagedProductsAsync(page, pageSize, cancellationToken);
+            var result = await _productService.GetPagedProductsAsync(
+       page, pageSize, cancellationToken, search, minPrice, maxPrice);
             if (!result.Success)
             {
-                return View("Error", new ErrorViewModel()
-                {
-                    RequestId = Guid.NewGuid().ToString(),
-                });
+                return PartialView("_ErrorPartial", result.Error);
             }
 
             var (products, totalpages) = result.Data;

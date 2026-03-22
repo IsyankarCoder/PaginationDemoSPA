@@ -1,6 +1,24 @@
 ﻿@model List<Product>
+<div class="row mb-3">
+    <div class="col-md-4">
+        <input type="text" id="search" class="form-control" placeholder="Search...">
+    </div>
+    <div class="col-md-3">
+        <input type="number" id="minPrice" class="form-control" placeholder="Min Price">
+    </div>
+    <div class="col-md-3">
+        <input type="number" id="maxPrice" class="form-control" placeholder="Max Price">
+    </div>
+</div>
 <div id="products-container">
-    @await Html.PartialAsync("_ProductsTable", Model)
+    @if (ViewBag.ErrorMessage != null)
+    {
+        <div class="alert alert-danger">@ViewBag.ErrorMessage</div>
+    }
+    else
+    {
+        @await Html.PartialAsync("_ProductsTable", Model)
+    }
 </div>
 
 
@@ -10,43 +28,127 @@
     </script>
 
     <script type="text/javascript">
-        $(document).ready(function(){
+      (function()
+      {
+          let currentRequest=null;
 
-        function loadPage(page, pushState = true)
+          const selectors = {
+                container:"#products-container",
+                overlay:"#loading-overlay",
+                search:"#search",
+                minPrice:"#minPrice",
+                maxPrice:"#maxPrice"
+          }
+
+          // INIT
+          $(document).ready(init);
+
+          function init(){
+              bindEvents();
+              loadInitialPage();
+          }
+
+          // Events
+          function bindEvents(){
+              //Pagination
+               $("#products-container").on("click",".page-link",onPageClick);
+
+              //Back /Forward
+              window.onpopstate=onPopState;
+          }
+
+        function onPageClick(e){
+            e.preventDefault();
+
+            const page = $(this).data("page");
+            if(!page) return;
+
+            loadPage(page);
+        }
+
+        function onPopState(event){
+            const page = event.state?.page||1;
+            loadPage(page,false);
+        }
+
+        // Initial Load
+        function loadInitialPage(){
+            const params = new URLSearchParams(window.location.search);
+            const page = parseInt(params.get("page")) || 1;
+
+            laodPage(page,false);
+        }
+
+        // Core Function
+        function loadPage(page=1,pushState=true)
         {
-          
-        $.ajax({
-        url: '/Product/GetProductsPartial',
-        data: { page: page },
-        type: 'GET',
-        success: function(result){
-        $("#products-container").html(result);
+             abortPreviousRequest();
+             showLoading();
 
-        if(pushState)
-        {
-        debugger;
-        history.pushState({ page: page }, '', '?page=' + page);
-        }
-        }
-        });
+             currentRequest = $.ajax({
+                  url:'/ProductNew/GetProductsPartial',
+                  type:'GET',
+                  data: buildRequesData(page),
+                  success: function(html){
+                      render(html);
+
+                      if(pushState)
+                      {
+                          updateUrl(page);
+                      }
+
+                  },
+                  error:function(xhr){
+                      handleError(xhr);
+                  },
+                  complete:function(){
+                      hideLoading();
+                      currentRequest=null;                      
+                  }
+             });
+
         }
 
-        // Pagination click
-        $(document).on("click", ".page-link", function(e){
-        e.preventDefault();
-        var page = $(this).data("page");
-        loadPage(page);
-        });
+        // Helperss
 
-        // Back / Forward buttons
-        window.onpopstate = function(event) {
-        var page = event.state ? event.state.page : 1;
-        loadPage(page, false);
+        function handleError(xhr){
+            if(xhr.status===0) return; //aborted request
+
+            render("<div class='alert alert-danger'>Bir hata oluştu</div>");
         }
-        });
+         
 
-	 
+
+        function updateUrl(page){            
+            history.pushState({page},'','?page='+page)
+        }
+
+        function render(html){
+            $(selectors.container).html(html);
+        }
+        function buildRequesData(page){
+            return {
+                page:page,
+                search:$(selectors.search).val(),
+                minPrice:$(selectors.minPrice).val(),
+                maxPrice:$(selectors.maxPrice).val()
+            }
+        }
+
+        function abortPreviousRequest(){
+            if(currentRequest){
+              currentRequest.abort();
+            }
+        }
+
+        function showLoading(){
+             $(selectors.overlay).css("display","flex");
+        }
+
+        function hideLoading(){
+            $(selectors.overlay).hide();
+        }
+      })();
     </script>
-
 
 }
